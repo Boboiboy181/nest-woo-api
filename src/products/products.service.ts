@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 import { CreateProductDto } from './dtos/create-product.dto';
+import { UpdateProductDto } from './dtos/update-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -19,7 +20,7 @@ export class ProductsService {
   private removeCircularReferences(obj: any): any {
     const seen = new WeakSet();
     return JSON.parse(
-      JSON.stringify(obj, (key, value) => {
+      JSON.stringify(obj, (_key, value) => {
         if (typeof value === 'object' && value !== null) {
           if (seen.has(value)) {
             return;
@@ -68,7 +69,7 @@ export class ProductsService {
   async createProduct(createProductDto: CreateProductDto) {
     const data = {
       sku: createProductDto.sku,
-      name: createProductDto.title,
+      name: createProductDto.name,
       type: 'simple',
       description: createProductDto.description,
       price: createProductDto.price,
@@ -91,6 +92,24 @@ export class ProductsService {
       return response.data;
     } catch (error) {
       console.error('Error creating product:', error.message);
+      throw error;
+    }
+  }
+
+  async updateProductById(id: number, updateProductDto: UpdateProductDto) {
+    const productToUpdate = await this.getProductById(id);
+
+    const data = {
+      ...productToUpdate,
+      ...updateProductDto,
+    };
+
+    try {
+      const response = await this.wooCommerce.put(`products/${id}`, data);
+      this.removeCircularReferences(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating product by id:', error.message);
       throw error;
     }
   }

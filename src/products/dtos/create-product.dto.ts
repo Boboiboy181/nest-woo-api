@@ -31,7 +31,7 @@ export class CreateProductDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  title: string;
+  name: string;
 
   @ApiProperty()
   @IsString()
